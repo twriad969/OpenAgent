@@ -1,0 +1,10 @@
+{
+  "model": "openrouter/anthropic/claude-3.5-sonnet",
+  "rules": [
+    "Always read AGENTS.md before starting any task",
+    "Only generate HTML, CSS, JavaScript, and PHP files",
+    "Always create index.php as the main entry point",
+    "Use SQLite via PDO for any database requirements",
+    "Never use React, Vue, Node.js, or any backend other than PHP"
+  ]
+}
