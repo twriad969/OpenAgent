@@ -9,7 +9,8 @@ import {
   getOpencodeHeaders,
   opencodeReady,
   sendPromptAsync,
-  sendSessionMessage
+  sendSessionMessage,
+  isOpencodeEnabled
 } from './opencode.js';
 import { broadcastToProject } from './websocket.js';
 import { startPreview } from './preview.js';
@@ -111,6 +112,56 @@ function routeEvent(eventType, payload) {
   });
 }
 
+
+function writeFileIfMissing(filePath, content) {
+  if (fs.existsSync(filePath)) return;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content, 'utf8');
+}
+
+function scaffoldLocalProject(projectDir, prompt) {
+  const promptLine = JSON.stringify(`Generated locally from prompt: ${prompt}`);
+
+  writeFileIfMissing(
+    path.join(projectDir, 'index.php'),
+    `<?php
+$prompt = ${promptLine};
+?><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LandingForge Preview</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <h1>LandingForge Local Test Mode</h1>
+    <p><?= htmlspecialchars($prompt) ?></p>
+    <button id="cta">Ship it</button>
+  </main>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
+`
+  );
+
+  writeFileIfMissing(
+    path.join(projectDir, 'assets/css/style.css'),
+    `:root { font-family: Inter, system-ui, sans-serif; }
+body { margin: 0; background: #f6f7fb; color: #0f172a; }
+.wrap { max-width: 760px; margin: 72px auto; background: #fff; border: 1px solid #dce2ef; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(15,23,42,.08); }
+#cta { border: 0; background: #2563eb; color: #fff; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+`
+  );
+
+  writeFileIfMissing(
+    path.join(projectDir, 'assets/js/main.js'),
+    `document.getElementById('cta')?.addEventListener('click', () => alert('Local test mode preview is wired correctly.'));
+`
+  );
+}
+
 async function consumeEventStream() {
   const res = await fetch(`${getOpencodeBaseUrl()}/event`, {
     headers: {
@@ -191,6 +242,24 @@ generateRouter.post('/projects/:id/generate', async (req, res) => {
   fs.mkdirSync(projectDir, { recursive: true });
 
   const headers = { 'x-opencode-directory': projectDir };
+
+  if (!isOpencodeEnabled()) {
+    scaffoldLocalProject(projectDir, prompt);
+    db.prepare("UPDATE projects SET status = 'done', updated_at = datetime('now') WHERE id = ?").run(project.id);
+    db.prepare("UPDATE jobs SET status = 'done', finished_at = datetime('now') WHERE id = ?").run(jobId);
+
+    broadcastToProject(project.id, { type: 'status', message: 'Local test mode: starter files generated' });
+    broadcastToProject(project.id, { type: 'file_written', path: 'index.php' });
+
+    try {
+      startPreview(project.id);
+    } catch (error) {
+      console.warn('Unable to start preview:', error.message);
+    }
+
+    broadcastToProject(project.id, { type: 'done' });
+    return res.status(204).send();
+  }
 
   try {
     if (!primedSessions.has(project.opencode_session_id)) {

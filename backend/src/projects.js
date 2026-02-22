@@ -4,7 +4,7 @@ import path from 'node:path';
 import { nanoid } from 'nanoid';
 import { db } from './db.js';
 import { requireAuth } from './auth.js';
-import { createOpencodeSession } from './opencode.js';
+import { createOpencodeSession, isOpencodeEnabled } from './opencode.js';
 import { stopPreview } from './preview.js';
 import { PROJECTS_ROOT } from './paths.js';
 
@@ -49,8 +49,11 @@ projectsRouter.post('/', async (req, res) => {
   const dir = path.join(PROJECTS_ROOT, id);
   fs.mkdirSync(dir, { recursive: true });
 
-  const session = await createOpencodeSession(name);
-  const opencodeSessionId = session?.id || session?.sessionID || session?.sessionId;
+  let opencodeSessionId = null;
+  if (isOpencodeEnabled()) {
+    const session = await createOpencodeSession(name);
+    opencodeSessionId = session?.id || session?.sessionID || session?.sessionId || null;
+  }
 
   db.prepare(
     `INSERT INTO projects (id, user_id, name, description, status, opencode_session_id)

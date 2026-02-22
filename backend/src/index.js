@@ -26,6 +26,20 @@ app.use((req, res, next) => {
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '2mb' }));
 
+async function fetchWithRetry(url, attempts = 4, delayMs = 250) {
+  let lastError;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await fetch(url);
+    } catch (error) {
+      lastError = error;
+      if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError;
+}
+
+
 app.get('/health', async (_req, res) => {
   let opencode = false;
   try {
@@ -78,7 +92,7 @@ app.get('/preview/:projectId/*', async (req, res, next) => {
     forwardParams.delete('previewToken');
     const query = forwardParams.toString();
     const target = `http://127.0.0.1:${project.preview_port}/${subPath}${query ? `?${query}` : ''}`;
-    const proxied = await fetch(target);
+    const proxied = await fetchWithRetry(target);
     const body = await proxied.arrayBuffer();
 
     res.status(proxied.status);

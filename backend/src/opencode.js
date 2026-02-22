@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 const OPENCODE_PORT = Number(process.env.OPENCODE_PORT || 4096);
 const OPENCODE_HOST = '127.0.0.1';
 const BASE_URL = `http://${OPENCODE_HOST}:${OPENCODE_PORT}`;
+const OPENCODE_ENABLED = process.env.OPENCODE_ENABLED !== 'false';
 
 let readyResolve;
 export let opencodeReady = new Promise((resolve) => {
@@ -53,6 +54,7 @@ function startHealthPolling() {
 }
 
 function spawnOpencode() {
+  if (!OPENCODE_ENABLED) return;
   childProcess = spawn('opencode', ['serve', '--port', String(OPENCODE_PORT), '--hostname', OPENCODE_HOST], {
     stdio: 'inherit',
     env: process.env
@@ -67,11 +69,22 @@ function spawnOpencode() {
 
   childProcess.on('error', (error) => {
     console.error(`Failed to start OpenCode: ${error.message}`);
+    if (error.code === 'ENOENT') {
+      console.error('OpenCode binary not found. Set OPENCODE_ENABLED=false for local testing without AI generation.');
+      return;
+    }
     scheduleRestart();
   });
 }
 
 export function startOpencode() {
+  if (!OPENCODE_ENABLED) {
+    ready = true;
+    readyResolve();
+    console.log('OpenCode disabled (OPENCODE_ENABLED=false). Running in local test mode.');
+    return;
+  }
+
   spawnOpencode();
 }
 
@@ -138,4 +151,8 @@ export function getOpencodeBaseUrl() {
 
 export function getOpencodeHeaders() {
   return authHeaders();
+}
+
+export function isOpencodeEnabled() {
+  return OPENCODE_ENABLED;
 }

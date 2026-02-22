@@ -165,6 +165,32 @@ Detailed local notes: `backend/OPENCODE_API_NOTES.md`.
 
 ---
 
+## Quick Start (Wired for Local Testing)
+
+```bash
+npm run install:all
+cp backend/.env.example backend/.env
+```
+
+If you **do not** have OpenCode installed yet, set this in `backend/.env`:
+
+```bash
+OPENCODE_ENABLED=false
+```
+
+Then start everything with one command:
+
+```bash
+npm run dev
+```
+
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:3001/health`
+
+When `OPENCODE_ENABLED=false`, generation uses a **local test scaffold mode** so you can still create projects, run prompts, and verify preview/file-tree end-to-end.
+
+---
+
 ## Setup
 
 ### Prerequisites
@@ -172,7 +198,7 @@ Detailed local notes: `backend/OPENCODE_API_NOTES.md`.
 - Node.js 20+
 - npm
 - PHP installed and available in `PATH`
-- OpenCode CLI installed and available as `opencode` in `PATH`
+- OpenCode CLI installed and available as `opencode` in `PATH` (optional for local test mode)
 
 ### Install
 
