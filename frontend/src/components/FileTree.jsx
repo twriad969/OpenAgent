@@ -1,7 +1,7 @@
 function TreeNode({ node, level = 0 }) {
   if (node.type === 'file') {
     return (
-      <li className="rounded px-2 py-1 text-[#c8beaf] hover:bg-[#2c2c2c]" style={{ paddingLeft: `${level * 14 + 8}px` }}>
+      <li className="rounded px-2 py-1 hover:bg-[#f5f0e5]" style={{ paddingLeft: `${level * 14 + 8}px` }}>
         {node.name}
       </li>
     );
@@ -9,13 +9,13 @@ function TreeNode({ node, level = 0 }) {
 
   return (
     <li>
-      <div className="rounded px-2 py-1 font-medium text-[#f2e8d8]" style={{ paddingLeft: `${level * 14 + 8}px` }}>
+      <div className="rounded px-2 py-1 font-semibold" style={{ paddingLeft: `${level * 14 + 8}px` }}>
         {node.name}
       </div>
       {node.children?.length ? (
         <ul>
           {node.children.map((child) => (
-            <TreeNode key={child.path} node={child} level={level + 1} />
+            <TreeNode key={child.path || `${node.name}-${child.name}`} node={child} level={level + 1} />
           ))}
         </ul>
       ) : null}
@@ -25,11 +25,11 @@ function TreeNode({ node, level = 0 }) {
 
 export default function FileTree({ tree }) {
   return (
-    <section className="panel mt-4 h-[30vh] p-4">
-      <h3 className="mb-2 text-sm font-semibold text-[var(--text)]">Files</h3>
+    <section className="panel mt-4 h-[26vh] p-4">
+      <h3 className="mb-2 text-sm font-semibold">Files</h3>
       <div className="h-[calc(100%-1.75rem)] overflow-auto text-xs">
         {!tree?.length ? (
-          <div className="rounded-lg border border-dashed border-[#4f4f4f] p-3 text-[#a89f92]">No generated files yet.</div>
+          <div className="event-card text-[var(--muted)]">No generated files yet.</div>
         ) : (
           <ul className="space-y-1">
             {tree.map((node) => (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { wsManager } from '../ws';
 import AgentActivity from '../components/AgentActivity';
@@ -11,19 +11,12 @@ import JobTimeline from '../components/JobTimeline';
 function CommandPalette({ open, onClose, actions }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 p-8" onClick={onClose}>
-      <div className="panel emotional-enter w-full max-w-xl p-3" onClick={(e) => e.stopPropagation()}>
-        <p className="mb-2 px-2 text-xs uppercase tracking-[0.2em] text-[#9f947f]">Quick actions</p>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-8" onClick={onClose}>
+      <div className="panel surface-yellow w-full max-w-xl p-3" onClick={(e) => e.stopPropagation()}>
+        <p className="mb-2 px-2 text-xs uppercase tracking-[0.2em]">Quick actions</p>
         <div className="space-y-1">
           {actions.map((action) => (
-            <button
-              key={action.label}
-              className="w-full rounded-xl border border-[#3a3a3a] bg-[#1c1c1c] px-3 py-2 text-left text-sm text-[#ddd2be] hover:border-[#565042]"
-              onClick={() => {
-                action.run();
-                onClose();
-              }}
-            >
+            <button key={action.label} className="btn w-full text-left" onClick={() => { action.run(); onClose(); }}>
               {action.label}
             </button>
           ))}
@@ -35,6 +28,7 @@ function CommandPalette({ open, onClose, actions }) {
 
 export default function Project() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const promptRef = useRef(null);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -57,7 +51,6 @@ export default function Project() {
     const separator = previewSrc.includes('?') ? '&' : '?';
     return `${previewSrc}${separator}t=${reloadKey}`;
   }, [previewReady, previewSrc, reloadKey]);
-
 
   const refreshPreviewUrl = async () => {
     try {
@@ -88,41 +81,29 @@ export default function Project() {
     const onKey = (e) => {
       const target = e.target;
       const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
-
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandOpen((v) => !v);
       }
-
       if (!typing && e.key === '/') {
         e.preventDefault();
         promptRef.current?.focus();
       }
     };
-
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    refreshJobsAndFiles()
-      .then(() => {
-        if (!mounted) return;
-      })
-      .catch((error) => {
-        setEvents((prev) => [...prev, { type: 'error', message: error.message, timestamp: new Date().toISOString(), projectId: id }]);
-      });
+    refreshJobsAndFiles().catch((error) => {
+      setEvents((prev) => [...prev, { type: 'error', message: error.message, timestamp: new Date().toISOString(), projectId: id }]);
+    });
 
     const offStatus = wsManager.onStatus((status) => setWsStatus(status));
 
     const handleEvent = async (event) => {
       setEvents((prev) => [...prev.slice(-399), event]);
-
-      if (['status', 'token', 'tool_call', 'file_written'].includes(event.type)) {
-        setGenerating(true);
-      }
+      if (['status', 'token', 'tool_call', 'file_written'].includes(event.type)) setGenerating(true);
 
       if (event.type === 'file_written') {
         try {
@@ -148,7 +129,6 @@ export default function Project() {
     wsManager.subscribe(id, handleEvent);
 
     return () => {
-      mounted = false;
       offStatus();
       wsManager.unsubscribe(id, handleEvent);
     };
@@ -194,35 +174,35 @@ export default function Project() {
   ];
 
   return (
-    <main className="mx-auto min-h-screen max-w-[1700px] p-4 text-[var(--text)] lg:p-6">
+    <main className="min-h-screen p-4 lg:p-6">
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} actions={actions} />
 
-      <header className="panel emotional-enter mb-4 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-4xl">{project?.name || 'Builder'}</h1>
-            <p className="text-sm text-[#b7ad9a]">{project?.description || 'Emotion-first minimal realtime builder.'}</p>
+      <div className="mx-auto grid max-w-[1500px] gap-4 lg:grid-cols-[290px,1fr]">
+        <aside className="panel surface-green h-fit p-4 lg:sticky lg:top-6">
+          <button className="btn mb-3 w-full" onClick={() => navigate('/dashboard')}>← Back to projects</button>
+          <h1 className="text-3xl leading-tight">{project?.name || 'Builder'}</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">{project?.description || 'Prompt-driven website generation'}</p>
+          <div className="mt-4 grid gap-2 text-xs">
+            <span className="badge">{generating ? 'Generating' : 'Idle'}</span>
+            <span className="badge">Events {events.length}</span>
+            <span className="badge">Tokens {tokenCount}</span>
+            <span className="badge">⌘/Ctrl+K actions</span>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="badge">{generating ? 'Generating…' : 'Idle'}</span>
-            <span className="badge">Events: {events.length}</span>
-            <span className="badge">Tokens: {tokenCount}</span>
-            <span className="badge">⌘/Ctrl+K</span>
-            <button className="btn" onClick={() => refreshPreviewUrl()}>Refresh Preview</button>
+        </aside>
+
+        <section className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-[380px,1fr]">
+            <div>
+              <AgentActivity events={events} wsStatus={wsStatus} onClear={() => setEvents([])} />
+              <FileTree tree={fileTree} />
+              <JobTimeline jobs={jobs} />
+            </div>
+            <PreviewFrame src={iframeSrc} loading={generating && !previewReady} />
           </div>
-        </div>
-      </header>
 
-      <section className="grid gap-4 lg:grid-cols-[420px,1fr]">
-        <div>
-          <AgentActivity events={events} wsStatus={wsStatus} onClear={() => setEvents([])} />
-          <FileTree tree={fileTree} />
-          <JobTimeline jobs={jobs} />
-        </div>
-        <PreviewFrame src={iframeSrc} loading={generating && !previewReady} />
-      </section>
-
-      <PromptBar value={prompt} onChange={setPrompt} onSubmit={onSubmit} generating={generating} inputRef={promptRef} />
+          <PromptBar value={prompt} onChange={setPrompt} onSubmit={onSubmit} generating={generating} inputRef={promptRef} />
+        </section>
+      </div>
     </main>
   );
 }

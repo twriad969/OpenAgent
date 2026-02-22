@@ -26,26 +26,40 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="panel emotional-enter w-full max-w-md p-8">
-        <p className="mb-2 text-xs tracking-[0.24em] text-[#9f947f]">LANDINGFORGE</p>
-        <h1 className="mb-2 text-4xl text-[var(--text)]">{mode === 'login' ? 'Return to Craft' : 'Begin Crafting'}</h1>
-        <p className="mb-6 text-sm text-[#b7ad9a]">Build cinematic PHP experiences with streaming agent feedback.</p>
+    <main className="min-h-screen p-5 lg:p-8">
+      <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-6xl gap-6 lg:grid-cols-[1.15fr,0.85fr]">
+        <section className="panel surface-blue flex flex-col justify-between p-6 lg:p-8">
+          <div>
+            <p className="badge mb-4 inline-flex">LANDINGFORGE</p>
+            <h1 className="max-w-xl text-5xl leading-tight">Ship fast websites with an agentic builder that stays focused.</h1>
+            <p className="mt-4 max-w-lg text-sm text-[#1e1e1e]">
+              Neo-brutalist, no-noise workspace. Prompt. Stream. Preview. Iterate.
+            </p>
+          </div>
+          <div className="grid gap-3 text-sm md:grid-cols-3">
+            <div className="panel bg-white p-3">Realtime activity feed</div>
+            <div className="panel bg-white p-3">Project-level preview</div>
+            <div className="panel bg-white p-3">Prompt history + files</div>
+          </div>
+        </section>
 
-        <div className="mb-4 grid grid-cols-2 gap-2">
-          <button onClick={() => setMode('login')} className={mode === 'login' ? 'btn-primary' : 'btn'} type="button">Sign in</button>
-          <button onClick={() => setMode('signup')} className={mode === 'signup' ? 'btn-primary' : 'btn'} type="button">Sign up</button>
-        </div>
+        <section className="panel emotional-enter p-6 lg:p-8">
+          <h2 className="text-3xl">{mode === 'login' ? 'Welcome back' : 'Create account'}</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">Simple auth. Straight into builder mode.</p>
 
-        <form onSubmit={onSubmit} className="space-y-3">
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="input" />
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="input" minLength={8} />
-          <button disabled={loading} className="btn-primary w-full disabled:opacity-50">
-            {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
-          </button>
-          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        </form>
+          <div className="my-5 grid grid-cols-2 gap-2">
+            <button onClick={() => setMode('login')} className={mode === 'login' ? 'btn-primary' : 'btn'} type="button">Sign in</button>
+            <button onClick={() => setMode('signup')} className={mode === 'signup' ? 'btn-primary' : 'btn'} type="button">Sign up</button>
+          </div>
+
+          <form onSubmit={onSubmit} className="space-y-3">
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="input" />
+            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="input" minLength={8} />
+            <button disabled={loading} className="btn-primary w-full disabled:opacity-50">{loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
+            {error && <p className="badge mt-2 inline-flex !bg-[#ffd4d4] text-sm text-[#650000]">{error}</p>}
+          </form>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

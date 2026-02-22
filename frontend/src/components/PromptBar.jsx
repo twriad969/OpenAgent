@@ -1,8 +1,8 @@
 const suggestions = [
-  'Make the hero more cinematic and emotional',
-  'Add animated pricing comparison blocks',
-  'Create polished form validation and success states',
-  'Refine typography and spacing for mobile'
+  'Simplify hero copy and sharpen CTA hierarchy',
+  'Create a clean pricing table with one featured tier',
+  'Improve mobile layout and spacing rhythm',
+  'Add social proof strip and FAQ section'
 ];
 
 export default function PromptBar({ value, onChange, onSubmit, generating, inputRef }) {
@@ -16,17 +16,17 @@ export default function PromptBar({ value, onChange, onSubmit, generating, input
         ))}
       </div>
       <form onSubmit={onSubmit} className="panel emotional-enter flex items-center gap-2 p-3">
-        <div className={`pulse-dot h-2.5 w-2.5 rounded-full ${generating ? 'bg-amber-400' : 'bg-lime-300'}`} />
+        <div className={`pulse-dot h-2.5 w-2.5 rounded-full ${generating ? 'bg-rose-500' : 'bg-emerald-500'}`} />
         <input
           ref={inputRef}
           className="input flex-1"
-          placeholder="Describe your next iteration…"
+          placeholder="Tell the agent what to change next…"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={generating}
         />
         <button disabled={generating || !value.trim()} className="btn-primary disabled:opacity-50">
-          {generating ? 'Thinking…' : 'Ship Prompt'}
+          {generating ? 'Thinking…' : 'Run'}
         </button>
       </form>
     </div>
