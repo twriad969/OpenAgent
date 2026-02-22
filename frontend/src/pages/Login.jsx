@@ -32,14 +32,14 @@ export default function Login() {
           <div>
             <p className="badge mb-4 inline-flex">LANDINGFORGE</p>
             <h1 className="max-w-xl text-5xl leading-tight">Ship fast websites with an agentic builder that stays focused.</h1>
-            <p className="mt-4 max-w-lg text-sm text-[#1e1e1e]">
+            <p className="mt-4 max-w-lg text-sm text-[var(--muted)]">
               Neo-brutalist, no-noise workspace. Prompt. Stream. Preview. Iterate.
             </p>
           </div>
           <div className="grid gap-3 text-sm md:grid-cols-3">
-            <div className="panel bg-white p-3">Realtime activity feed</div>
-            <div className="panel bg-white p-3">Project-level preview</div>
-            <div className="panel bg-white p-3">Prompt history + files</div>
+            <div className="event-card p-3">Realtime activity feed</div>
+            <div className="event-card p-3">Project-level preview</div>
+            <div className="event-card p-3">Prompt history + files</div>
           </div>
         </section>
 

@@ -62,8 +62,8 @@ export default function Dashboard() {
           <h1 className="text-3xl">Projects</h1>
           <p className="mt-1 text-sm">{me?.email}</p>
           <div className="mt-4 space-y-2 text-sm">
-            <div className="panel bg-white p-3">Total projects: {projects.length}</div>
-            <div className="panel bg-white p-3">Filtered: {filteredProjects.length}</div>
+            <div className="event-card p-3">Total projects: {projects.length}</div>
+            <div className="event-card p-3">Filtered: {filteredProjects.length}</div>
           </div>
           <button className="btn mt-4 w-full" onClick={logout}>Logout</button>
         </aside>
